@@ -16,3 +16,7 @@ jobs:
       - name: export environment
         run: |
           export
+      
+      - name: export a
+        run: |
+          export
