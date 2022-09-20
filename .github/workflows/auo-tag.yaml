@@ -1,0 +1,33 @@
+name: auto tag
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, closed]
+    paths:
+      - debian/changelog
+
+jobs:
+  get_version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: get changelog version
+        id: get-version
+        run: |
+          echo "::set-output name=TAG::$(LC_ALL=C dpkg-parsechangelog -S Version)"
+
+      - name: create comment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: 'TAG: ${{ steps.get-version.outputs.RUN_ID }}'
+                })
