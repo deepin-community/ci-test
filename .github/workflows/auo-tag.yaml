@@ -58,38 +58,18 @@ jobs:
                   body: COMMENT_HEAD + COMMENT_BODY
               })
             }
-            # const { user } = await github.rest.pulls.get({
-            #   owner: context.repo.owner,
-            #   repo: context.repo.repo,
-            #   pull_number: context.issue.number
-            # })
-            # console.log(user)
             if ("${{ steps.test-tag-exists.outputs.EXISTS }}" === "yes"){
               core.setFailed("Tag: ${{ steps.get-version.outputs.TAG }} exists!")
             }
 
       - name: Create tag
-        uses: actions/github-script@v5
         if: github.event.pull_request.merged
+        uses: actions/github-script@v5
         with:
           script: |
-            const response = github.rest.pulls.get({
+            github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: context.issue.number
+              ref: 'refs/tags/${{ steps.get-version.outputs.TAG }}',
+              sha: context.sha
             })
-
-            await github.rest.git.createTag(
-              {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag: '${{ steps.get-version.outputs.TAG }}',
-                message: "Release " + context.repo.repo + ' ${{ steps.get-version.outputs.TAG }}',
-                object: context.sha,
-                type: 'commit',
-                tagger: {
-                  name: "tag-bot",
-                  email: "tag@deepin.org"
-                }
-              }
-            )
