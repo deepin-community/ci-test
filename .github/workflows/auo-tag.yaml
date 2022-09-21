@@ -33,7 +33,7 @@ jobs:
           script: |
             const BOT_NAME = "TAG Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
-            const COMMENT_BODY = "TAG: ${{ steps.get-version.outputs.TAG }}\nEXSISTED: ${{ steps.test-tag-exists.outputs.EXISTS }}"
+            const COMMENT_BODY = "TAG: ${{ steps.get-version.outputs.TAG }}\nEXISTED: ${{ steps.test-tag-exists.outputs.EXISTS }}"
             const response = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -67,9 +67,16 @@ jobs:
         uses: actions/github-script@v5
         with:
           script: |
-            github.rest.git.createRef({
+            const {data} = await github.rest.git.creatTag({
+              message: "Release " + context.repo.repo + " ${{ steps.get-version.outputs.TAG }}",
+              type: 'commit',
+              object: context.sha,
+              tag: "${{ steps.get-version.outputs.TAG }}"
+            })
+
+            await github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: 'refs/tags/${{ steps.get-version.outputs.TAG }}',
-              sha: context.sha
+              sha: data.sha
             })
