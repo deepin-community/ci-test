@@ -58,38 +58,21 @@ jobs:
                   body: COMMENT_HEAD + COMMENT_BODY
               })
             }
-            # const { user } = await github.rest.pulls.get({
-            #   owner: context.repo.owner,
-            #   repo: context.repo.repo,
-            #   pull_number: context.issue.number
-            # })
-            # console.log(user)
             if ("${{ steps.test-tag-exists.outputs.EXISTS }}" === "yes"){
               core.setFailed("Tag: ${{ steps.get-version.outputs.TAG }} exists!")
             }
 
-      - name: Create tag
-        uses: actions/github-script@v5
-        if: github.event.pull_request.merged
-        with:
-          script: |
-            const response = github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number
-            })
+        - name: Run latest-tag
+          uses: EndBug/latest-tag@latest
+          with:
+            # You can change the name of the tag or branch with this input.
+            # Default: 'latest'
+            ref: ${{ steps.get-version.outputs.TAG }}
 
-            await github.rest.git.createTag(
-              {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                tag: '${{ steps.get-version.outputs.TAG }}',
-                message: "Release " + context.repo.repo + ' ${{ steps.get-version.outputs.TAG }}',
-                object: context.sha,
-                type: 'commit',
-                tagger: {
-                  name: "tag-bot",
-                  email: "tag@deepin.org"
-                }
-              }
-            )
+            # If a description is provided, the action will use it to create an annotated tag. If none is given, the action will create a lightweight tag.
+            # Default: ''
+            description: Release ${{ steps.get-version.outputs.TAG }}
+
+            # Force-update a branch instead of using a tag.
+            # Default: false
+            force-branch: true
