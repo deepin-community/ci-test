@@ -58,12 +58,6 @@ jobs:
                   body: COMMENT_HEAD + COMMENT_BODY
               })
             }
-            # const { user } = await github.rest.pulls.get({
-            #   owner: context.repo.owner,
-            #   repo: context.repo.repo,
-            #   pull_number: context.issue.number
-            # })
-            # console.log(user)
             if ("${{ steps.test-tag-exists.outputs.EXISTS }}" === "yes"){
               core.setFailed("Tag: ${{ steps.get-version.outputs.TAG }} exists!")
             }
