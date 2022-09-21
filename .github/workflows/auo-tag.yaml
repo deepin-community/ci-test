@@ -58,6 +58,12 @@ jobs:
                   body: COMMENT_HEAD + COMMENT_BODY
               })
             }
+            const pull_request = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            })
+            console.log(pull_request)
             if ("${{ steps.test-tag-exists.outputs.EXISTS }}" === "yes"){
               core.setFailed("Tag: ${{ steps.get-version.outputs.TAG }} exists!")
             }
@@ -67,9 +73,23 @@ jobs:
         if: github.event.pull_request.merged
         with:
           script: |
-            await github.rest.git.createRef({
+            const response = github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/${{ steps.get-version.outputs.TAG }}',
-              sha: context.sha
+              pull_number: context.issue.number
             })
+
+            await github.rest.git.createTag(
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: '${{ steps.get-version.outputs.TAG }}',
+                message: "Release " + context.repo.repo + ' ${{ steps.get-version.outputs.TAG }}',
+                object: context.sha,
+                type: 'commit',
+                tagger: {
+                  name: "",
+                  email: ""
+                }
+              }
+            )
