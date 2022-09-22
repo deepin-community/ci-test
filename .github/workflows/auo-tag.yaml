@@ -68,14 +68,12 @@ jobs:
         with:
           script: |
             const {data} = await github.rest.git.createTag({
+              repo: context.repo.repo,
+              owner: context.repo.owner,
               message: "Release " + context.repo.repo + " ${{ steps.get-version.outputs.TAG }}",
               type: 'commit',
               object: context.sha,
-              tag: "${{ steps.get-version.outputs.TAG }}",
-              tagger: {
-                name: "deepin-bot",
-                email: "deepin-bot@deepin.org"
-              }
+              tag: "${{ steps.get-version.outputs.TAG }}"
             })
 
             await github.rest.git.createRef({
