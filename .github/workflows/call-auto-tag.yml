@@ -10,7 +10,14 @@ jobs:
   auto_tag:
     runs-on: ubuntu-latest
     steps:
+      - name: get email
+        id: test
+        uses: evvanErb/get-github-email-by-username-action@v1.25
+        with:
+          github-username: '${{ github.event.pull_request.user.login }}' # This is the input username
+          token: '${{ github.token }}' # This is an optional input of a PAT to use a more reliable way to get a user's email
+
       - name: Get PR Author Email Address
         run: |
-          echo "The name of the pusher: ${{ github.event.pusher.name }}"
-          echo "The email of the pusher: ${{ github.event.pusher.email }}"
+          echo "The name of the pusher: ${{ github.event.pull_request.user.login }}"
+          echo "The email of the pusher: ${{ steps.test.outputs.email }}"
