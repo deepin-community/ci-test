@@ -94,7 +94,7 @@ jobs:
         if: github.event.pull_request.merged
         uses: actions/github-script@v5
         with:
-          github-token: ${{ secrets.PAT }}
+          github-token: ${{ steps.get-token.outpus.app_token }}
           script: |
             const {data} = await github.rest.git.createTag({
               repo: context.repo.repo,
@@ -107,6 +107,6 @@ jobs:
             await github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'refs/tags/${{ steps.get-token.outputs.token }}',
+              ref: 'refs/tags/${{ steps.get-version.outputs.TAG }}',
               sha: data.sha
             })
