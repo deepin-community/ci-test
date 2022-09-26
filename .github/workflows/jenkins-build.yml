@@ -1,0 +1,32 @@
+name: build on jenkins
+
+on:
+  workflow_call:
+    inputs:
+      repo:
+        required: true
+        type: string
+
+      tag:
+        required: true
+        type: string
+
+env:
+  TASK: ${{ inputs.repo }}
+  VERSION: ${{ inputs.tag }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: trigger build
+        run: |
+          echo prepare build $TASK in $VERSION
+      
+      - name: build
+        run: |
+          echo $TASK build in version $VERSION
+          DIFF=$((10-50+1))
+          R=$(($(($RANDOM%$DIFF))+X))
+          sleep $R
+          echo done

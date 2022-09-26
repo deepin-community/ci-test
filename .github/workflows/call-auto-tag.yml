@@ -1,17 +1,220 @@
-name: auto tag
+name: ingegration-request
 
 on:
+  workflow_dispatch:
   pull_request_target:
-    types: [opened, synchronize, closed]
     paths:
-      - "debian/changelog"
-
-concurrency:
-  group: ${{ github.workflow }}-pull/${{ github.event.number }}
-  cancel-in-progress: true
+      - "command.yaml"
+    types: [ opened, closed, synchronize ]
 
 jobs:
-  auto_tag:
-    uses: deepin-community/.github/.github/workflows/auto-tag.yml@master
-    secrets:
-      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+  parsec_command:
+    runs-on: ubuntu-latest
+    outputs:
+      build_matrix_0: ${{ steps.parsec_command.outputs.build_matrix_0 }}
+      build_matrix_1: ${{ steps.parsec_command.outputs.build_matrix_1 }}
+      build_matrix_2: ${{ steps.parsec_command.outputs.build_matrix_2 }}
+      build_matrix_3: ${{ steps.parsec_command.outputs.build_matrix_3 }}
+      build_matrix_4: ${{ steps.parsec_command.outputs.build_matrix_4 }}
+      build_matrix_5: ${{ steps.parsec_command.outputs.build_matrix_5 }}
+      build_matrix_6: ${{ steps.parsec_command.outputs.build_matrix_6 }}
+      build_matrix_7: ${{ steps.parsec_command.outputs.build_matrix_7 }}
+      build_matrix_8: ${{ steps.parsec_command.outputs.build_matrix_8 }}
+      build_matrix_9: ${{ steps.parsec_command.outputs.build_matrix_9 }}
+      message: ${{ steps.parsec_command.outputs.message }}
+    steps:
+      - name: checkout_pull_request
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.ref  }}
+          persist-credentials: false
+
+      - name: parsec_command
+        id: parsec_command
+        shell: python
+        run: |
+          #!/bin/env python3
+          import yaml
+          import os
+          import logging
+          logging.basicConfig(level=logging.INFO)
+          maxSize = os.environ.get("MAX_TASKS", 10)
+          def read_intergration():
+              with open("intergration.yml", "r+") as intergration_file:
+                  return yaml.safe_load(intergration_file)
+          def main():
+              try:
+                  allRepos = [{"order": j,"data":{"payload": []}} for j in range(maxSize)]
+                  data = read_intergration()
+                  message = data.get("message", "")
+                  print("::set-output name=message::" + message)
+                  for repo in data.get("repos"):
+                      order = int(repo.get("order",0))
+                      if order >= maxSize: order = maxSize - 1
+                      elif order < 0: order = 0
+                      allRepos[order].get("data").get("payload").append(repo)
+                  for order in allRepos:
+                      if len(order.get("data").get("payload")) > 0:
+                          print("::set-output name=build_matrix_" + str(order['order']) + "::" + str(order.get("data")))
+              except BaseException as e:
+                  logging.error(e)
+                  exit(-10)
+          if __name__ == "__main__":
+              exit(main())
+
+  ouput_message:
+    name: output
+    needs: parsec_command
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: create comment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const BOT_NAME = "INTERGRATION Bot"
+            const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
+            const COMMENT_BODY = "INTERGRATION: ${{ steps.parsec_command.outputs.message }}"
+            const response = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            })
+            const reg = new RegExp("\\*+" + BOT_NAME + "\\*+")
+            tagBotComment= response.data.find(comment => comment.body.match(reg))
+            if (tagBotComment) {
+              await github.rest.issues.updateComment({
+                  comment_id: tagBotComment.id,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: COMMENT_HEAD + COMMENT_BODY
+              })
+            } else {
+              await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: COMMENT_HEAD + COMMENT_BODY
+              })
+            }
+
+  build-order-0:
+    name: build-order-0
+    if: ${{ needs.parsec_command.outputs.build_matrix_0 }}
+    needs: parsec_command
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_command.outputs.build_matrix_0) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+
+  build-order-1:
+    if: ${{ needs.parsec_command.outputs.build_matrix_1 }}
+    needs: 
+      - parsec_command
+      - build-order-0
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_command.outputs.build_matrix_1) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+
+  build-order-2:
+    if: ${{ needs.parsec_command.outputs.build_matrix_2 }}
+    needs:
+      - parsec_command
+      - build-order-1
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_command.outputs.build_matrix_2) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+
+  build-order-3:
+    if: ${{ needs.parsec_command.outputs.build_matrix_3 }}
+    needs: 
+      - parsec_command
+      - build-order-2
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_command.outputs.build_matrix_3) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+
+  build-order-4:
+    if: ${{ needs.parsec_command.outputs.build_matrix_4 }}
+    needs: 
+      - parsec_command
+      - build-order-3
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_command.outputs.build_matrix_4) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+
+  build-order-5:
+    name: build-order-5
+    if: ${{ needs.parsec_command.outputs.build_matrix_5 }}
+    needs:
+      - parsec_command
+      - build-order-4
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_command.outputs.build_matrix_5) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+
+  build-order-6:
+    if: ${{ needs.parsec_command.outputs.build_matrix_6 }}
+    needs:
+      - parsec_command
+      - build-order-5
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_command.outputs.build_matrix_6) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+
+  build-order-7:
+    if: ${{ needs.parsec_command.outputs.build_matrix_7 }}
+    needs:
+      - parsec_command
+      - build-order-6
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_command.outputs.build_matrix_7) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+
+  build-order-8:
+    if: ${{ needs.parsec_command.outputs.build_matrix_8 }}
+    needs: 
+      - parsec_command
+      - build-order-7
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_command.outputs.build_matrix_8) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+
+  build-order-9:
+    if: ${{ needs.parsec_command.outputs.build_matrix_9 }}
+    needs: 
+      - parsec_command
+      - build-order-8
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_command.outputs.build_matrix_9) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}

@@ -1,0 +1,49 @@
+message: "test"
+repos: 
+  - repo: repo1
+    tag: 0.5
+    order: 0
+
+  - repo: repo2
+    tag: 0.6
+    order: 0
+
+  - repo: repo3
+    tag: 0.6
+    order: 0
+
+  - repo: repo4
+    tag: 0.6
+    order: 2
+
+  - repo: repo5
+    tag: 0.6
+    order: 1
+
+  - repo: repo6
+    tag: 0.6
+    order: 3
+
+  - repo: repo7
+    tag: 0.6
+    order: 3
+
+  - repo: repo8
+    tag: 0.6
+    order: 2
+
+  - repo: repo9
+    tag: 0.6
+    order: 4
+
+  - repo: repo10
+    tag: 0.6
+    order: 5
+
+  - repo: repo11
+    tag: 0.6
+    order: 6
+
+  - repo: repo12
+    tag: 0.6
+    order: 7

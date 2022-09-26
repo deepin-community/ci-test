@@ -1,0 +1,14 @@
+name: build
+
+on:
+  workflow_call:
+
+jobs:
+  parsec_command:
+    runs-on: ubuntu-latest
+    steps:
+      - name: parsec_command
+        id: parsec_command
+        shell: python
+        run: |
+          print("hello")
