@@ -1,7 +1,7 @@
 message: "test"
 repos: 
-  - repo: repo1
-    tag: 0.5
+  - repo: ci-test
+    tag: 1.0
     order: 0
 
   - repo: repo2
@@ -47,3 +47,17 @@ repos:
   - repo: repo12
     tag: 0.6
     order: 7
+  - repo: repo13
+    tag: 5.6
+    order: 9
+  - repo: repo14
+    tag: 5.7.1
+    order: 8
+  - repo: repo15
+    tag: 5.9.1
+    order: 12
+  - repo: repo16
+    tag: 0
+    order: -1
+  - repo: repo17
+    tag: 0
