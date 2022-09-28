@@ -3,3 +3,6 @@ repos:
   - repo: ci-test
     tag: 1.0
     order: 0
+  - repo: ci-test
+    tag: 1.1
+    order: 0

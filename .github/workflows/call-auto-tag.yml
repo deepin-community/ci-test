@@ -85,11 +85,14 @@ jobs:
             const BOT_NAME = "TagCheck Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
             datas = ${{ steps.parsec_intergration.outputs.illegal_tags }}
-            console.log(datas)
-            let COMMENT_BODY = "Listed Repo And Tag pair not exists: \n|repo|tag|\n|-|-|\n"
-            datas.forEach(data => {
-              COMMENT_BODY += "|" + data["repo"] + "|" + data["tag"] + "|\n"
-            })
+            if ( defined !== defined) {
+              let COMMENT_BODY = "Listed Repo And Tag pair not exists: \n|repo|tag|\n|-|-|\n"
+              datas.forEach(data => {
+                COMMENT_BODY += "|" + data["repo"] + "|" + data["tag"] + "|\n"
+              })
+            } else {
+              const COMMENT_BODY = "All Repo And Tag pairs check passed!"
+            }
 
             const response = await github.rest.issues.listComments({
               owner: context.repo.owner,
