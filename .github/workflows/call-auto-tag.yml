@@ -197,7 +197,7 @@ jobs:
 
   build-order-0:
     name: build-order-0
-    if: always() && ${{ needs.parsec_intergration.outputs.build_matrix_0 }}
+    if: always() && ( needs.parsec_intergration.outputs.build_matrix_0 == '')
     needs: parsec_intergration
     strategy:
       matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_0) }}
@@ -207,7 +207,7 @@ jobs:
       tag: ${{ matrix.payload.tag }}
 
   build-order-1:
-    if: always() && ${{ needs.parsec_intergration.outputs.build_matrix_1 }}
+    if: always() && ( needs.parsec_intergration.outputs.build_matrix_1 == '')
     needs: 
       - parsec_intergration
       - build-order-0
@@ -219,7 +219,7 @@ jobs:
       tag: ${{ matrix.payload.tag }}
 
   build-order-2:
-    if: always() && ${{ needs.parsec_intergration.outputs.build_matrix_2 }}
+    if: always() && ( needs.parsec_intergration.outputs.build_matrix_2 == '')
     needs:
       - parsec_intergration
       - build-order-1
@@ -231,7 +231,7 @@ jobs:
       tag: ${{ matrix.payload.tag }}
 
   build-order-3:
-    if: always() && ${{ needs.parsec_intergration.outputs.build_matrix_3 }}
+    if: always() && ( needs.parsec_intergration.outputs.build_matrix_3 == '')
     needs: 
       - parsec_intergration
       - build-order-2
@@ -243,7 +243,7 @@ jobs:
       tag: ${{ matrix.payload.tag }}
 
   build-order-4:
-    if: always() && ${{ needs.parsec_intergration.outputs.build_matrix_4 }}
+    if: always() && ( needs.parsec_intergration.outputs.build_matrix_4 == '')
     needs: 
       - parsec_intergration
       - build-order-3
@@ -256,7 +256,7 @@ jobs:
 
   build-order-5:
     name: build-order-5
-    if: always() && ${{ needs.parsec_intergration.outputs.build_matrix_5 }}
+    if: always() && ( needs.parsec_intergration.outputs.build_matrix_5 == '')
     needs:
       - parsec_intergration
       - build-order-4
@@ -268,7 +268,7 @@ jobs:
       tag: ${{ matrix.payload.tag }}
 
   build-order-6:
-    if: always() && ${{ needs.parsec_intergration.outputs.build_matrix_6 }}
+    if: always() && ( needs.parsec_intergration.outputs.build_matrix_6 == '')
     needs:
       - parsec_intergration
       - build-order-5
@@ -280,7 +280,7 @@ jobs:
       tag: ${{ matrix.payload.tag }}
 
   build-order-7:
-    if: always() && ${{ needs.parsec_intergration.outputs.build_matrix_7 }}
+    if: always() && ( needs.parsec_intergration.outputs.build_matrix_7 == '')
     needs:
       - parsec_intergration
       - build-order-6
@@ -292,7 +292,7 @@ jobs:
       tag: ${{ matrix.payload.tag }}
 
   build-order-8:
-    if: always() && ${{ needs.parsec_intergration.outputs.build_matrix_8 }}
+    if: always() && ( needs.parsec_intergration.outputs.build_matrix_8 == '')
     needs: 
       - parsec_intergration
       - build-order-7
@@ -304,7 +304,7 @@ jobs:
       tag: ${{ matrix.payload.tag }}
 
   build-order-9:
-    if: always() && ${{ needs.parsec_intergration.outputs.build_matrix_9 }}
+    if: always() && ( needs.parsec_intergration.outputs.build_matrix_9 == '')
     needs: 
       - parsec_intergration
       - build-order-8
