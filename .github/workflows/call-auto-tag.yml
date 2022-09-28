@@ -67,7 +67,7 @@ jobs:
               allRepos = [{"order": j,"data":{"payload": []}} for j in range(maxSize)]
               data = read_intergration()
               message = data.get("message", "")
-              print("::set-output name=message::" + message)
+              print('::set-output name=message::"' + message + '"')
               for repo in data.get("repos"):
                   order = int(repo.get("order",0))
                   order = max(0, order) and min(order , maxSize - 1)
@@ -225,9 +225,17 @@ jobs:
               labels: ['Merged']
             })
 
+      - name: install depends for load scripts
+        run: |
+          npm install @octokit/rest
+          npm install @octokit/auth-app
+
       - name: Get token using github-script
         id: get-token
         uses: actions/github-script@v6
+        env:
+          APP_ID: 229710
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
         with:
           script: |
             const { Octokit } = require("@octokit/rest");
