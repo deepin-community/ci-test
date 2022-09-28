@@ -67,7 +67,7 @@ jobs:
               allRepos = [{"order": j,"data":{"payload": []}} for j in range(maxSize)]
               data = read_intergration()
               message = data.get("message", "")
-              print('::set-output name=message::"' + message + '"')
+              print("::set-output name=message::" + "'" + message + "'")
               for repo in data.get("repos"):
                   order = int(repo.get("order",0))
                   order = max(0, order) and min(order , maxSize - 1)
