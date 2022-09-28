@@ -1,4 +1,0 @@
-data = [{'repo': 'repo2', 'tag': 0.6}, {'repo': 'repo3', 'tag': 0.6}, {'repo': 'repo4', 'tag': 0.6}, {'repo': 'repo5', 'tag': 0.6}, {'repo': 'repo6', 'tag': 0.6}, {'repo': 'repo7', 'tag': 0.6}, {'repo': 'repo8', 'tag': 0.6}, {'repo': 'repo9', 'tag': 0.6}, {'repo': 'repo10', 'tag': 0.6}, {'repo': 'repo11', 'tag': 0.6}, {'repo': 'repo12', 'tag': 0.6}, {'repo': 'repo13', 'tag': 5.6}, {'repo': 'repo14', 'tag': '5.7.1'}, {'repo': 'repo15', 'tag': '5.9.1'}, {'repo': 'repo16', 'tag': 0}, {'repo': 'repo17', 'tag': 0}, {'repo': 'repo18', 'tag': 0}, {'repo': 'repo19', 'tag': 0}]
-data.forEach(element => {
-    console.log(element)
-});

@@ -1,5 +1,7 @@
 name: ingegration-request
 
+# https://github.com/actions/runner/issues/491#issuecomment-850884422 reason sue always() otherwise all next jobs will be skipped
+
 on:
   workflow_dispatch:
   pull_request_target:
@@ -164,6 +166,7 @@ jobs:
     needs: 
       - ouput_message
       - build-order-9
+    if: always()
     uses: deepin-community/ci-test/.github/workflows/merge-into-testing.yml@master
     with:
       topic: pr-${{ github.event.number }}
@@ -171,6 +174,7 @@ jobs:
   close-pullrequest:
     name: close this pull request
     needs: deploy-repo
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: lable intergerted
