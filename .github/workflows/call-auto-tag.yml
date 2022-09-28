@@ -27,7 +27,7 @@ jobs:
       build_matrix_7: ${{ steps.parsec_intergration.outputs.build_matrix_7 }}
       build_matrix_8: ${{ steps.parsec_intergration.outputs.build_matrix_8 }}
       build_matrix_9: ${{ steps.parsec_intergration.outputs.build_matrix_9 }}
-      message: ${{ steps.parsec_intergration.outputs.message }}
+      message: ${{ steps.message.outputs.message }}
     steps:
       - name: checkout_pull_request
         uses: actions/checkout@v3
@@ -83,6 +83,15 @@ jobs:
           except BaseException as e:
               logging.error(e)
               exit(-10)
+      - name: message transfor
+        id: message
+        run: |
+          message=${{ steps.parsec_intergration.outputs.message }}
+          message="${message//'%'/'%25'}"
+          message="${message//$'\n'/'%0A'}"
+          message="${message//$'\r'/'%0D'}"
+          echo "::set-output name=message::$message"
+
 
       - name: illegal_tags
         uses: actions/github-script@v6
@@ -197,6 +206,7 @@ jobs:
       (needs.build-order-9.result == 'success' || needs.build-order-9.result == 'skipped')
     with:
       topic: pr-${{ github.event.number }}
+
   # merge finished and success, closing this pr
   close-pull-request:
     name: close this pull request
@@ -270,7 +280,7 @@ jobs:
               "Authorization":"Bearer " + os.environ.get("GITHUB_TOKEN")
           }
           res = requests.patch(url="https://api.github.com/repos/deepin-community/${{ github.event.repository.name }}/pulls/${{ github.event.number }}",
-            headers=headers, data = {"state": "closed"})
+            headers=headers, json= {'state': 'closed'})
           print(res.text)
 
   # ten level build task
