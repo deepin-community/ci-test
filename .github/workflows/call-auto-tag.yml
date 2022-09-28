@@ -55,7 +55,7 @@ jobs:
           def check_tag_exsist(repo, tag):
               res = requests.get("https://api.github.com/repos/deepin-community/{repo}/git/ref/tags/{tag}".format(repo=repo, tag=tag), headers=header)
               if res.status_code != 200:
-                  illegal_tags.append((repo, tag))
+                  illegal_tags.append({"repo": repo, "tag": tag})
 
           try:
               allRepos = [{"order": j,"data":{"payload": []}} for j in range(maxSize)]
@@ -88,7 +88,7 @@ jobs:
             datas = JSON.parse("${{ steps.parsec_intergration.outputs.illegal_tags }}")
             let COMMENT_BODY = "Listed Repo And Tag pair not exists: \n|repo|tag|\n|-|-|\n"
             datas.forEach(data => {
-              COMMENT_BODY += "|" + data[0] + "|" + "data[1]" + "|\n"
+              COMMENT_BODY += "|" + data["repo"] + "|" + data["tag"] + "|\n"
             })
 
             const response = await github.rest.issues.listComments({

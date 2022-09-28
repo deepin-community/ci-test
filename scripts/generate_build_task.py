@@ -20,7 +20,7 @@ def read_intergration():
 def check_tag_exsist(repo, tag):
     res = requests.get("https://api.github.com/repos/deepin-community/{repo}/git/ref/tags/{tag}".format(repo=repo, tag=tag), headers=header)
     if res.status_code != 200:
-        illegal_tags.append((repo, tag))
+        illegal_tags.append({"repo": repo, "tag": tag})
 
 try:
     allRepos = [{"order": j,"data":{"payload": []}} for j in range(maxSize)]
