@@ -160,22 +160,45 @@ jobs:
                   body: COMMENT_HEAD + COMMENT_BODY
               })
             }
-
+  # https://github.com/actions/runner/issues/491#issuecomment-850884422 reason why use this if
+  # :( for this
   deploy-repo:
     name: merge topic repo
     needs: 
       - ouput_message
+      - build-order-0
+      - build-order-1
+      - build-order-2
+      - build-order-3
+      - build-order-4
+      - build-order-5
+      - build-order-6
+      - build-order-7
+      - build-order-8
       - build-order-9
-    if: always()
     uses: deepin-community/ci-test/.github/workflows/merge-into-testing.yml@master
+    if: |
+      always() &&
+      (needs.ouput_message.result == 'success') &&
+      (needs.build-order-0.result == 'success' || needs.build-order-0.result == 'skipped') &&
+      (needs.build-order-1.result == 'success' || needs.build-order-1.result == 'skipped') &&
+      (needs.build-order-2.result == 'success' || needs.build-order-2.result == 'skipped') &&
+      (needs.build-order-3.result == 'success' || needs.build-order-3.result == 'skipped') &&
+      (needs.build-order-4.result == 'success' || needs.build-order-4.result == 'skipped') &&
+      (needs.build-order-5.result == 'success' || needs.build-order-5.result == 'skipped') &&
+      (needs.build-order-6.result == 'success' || needs.build-order-6.result == 'skipped') &&
+      (needs.build-order-7.result == 'success' || needs.build-order-7.result == 'skipped') &&
+      (needs.build-order-8.result == 'success' || needs.build-order-8.result == 'skipped') &&
+      (needs.build-order-9.result == 'success' || needs.build-order-9.result == 'skipped')
     with:
       topic: pr-${{ github.event.number }}
   
   close-pullrequest:
     name: close this pull request
     needs: deploy-repo
-    if: always()
     runs-on: ubuntu-latest
+    # same as :(
+    if: always() $$ (needs.deploy-repo.result == 'success')
     steps:
       - name: lable intergerted
         uses: actions/github-script@v6
@@ -198,7 +221,7 @@ jobs:
                 'Merged'
               ]
             })
-
+  # start to build legal repo and tag, so not add needs.parsec_intergration.result == 'success'
   build-order-0:
     name: build-order-0
     if: always() && ( needs.parsec_intergration.outputs.build_matrix_0 != '')
