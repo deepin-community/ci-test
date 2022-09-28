@@ -222,6 +222,8 @@ jobs:
             })
       - name: close this pull request
         shell: python
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           import requests
           import os
@@ -230,7 +232,7 @@ jobs:
               "Accept": "application/vnd.github+json",
               "Authorization":"Bearer " + os.environ.get("GITHUB_TOKEN")
           }
-          res = requests.patch(url="https://api.github.com/repos/deepin-community/${{ github.event.repository.name }}/pulls/${{ github.event.issue.number }}",
+          res = requests.patch(url="https://api.github.com/repos/deepin-community/${{ github.event.repository.name }}/pulls/${{ github.event.number }}",
             headers=headers, data = {"state": "closed"})
           print(res.text)
 
