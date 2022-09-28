@@ -4,5 +4,5 @@ repos:
     tag: 1.0
     order: 0
   - repo: ci-test
-    tag: 1.2
+    tag: 1.0.17-2 
     order: 0
