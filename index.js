@@ -1,1 +1,4 @@
-JSON.parse("[('repo2', 0.6), ('repo3', 0.6), ('repo4', 0.6), ('repo5', 0.6), ('repo6', 0.6), ('repo7', 0.6), ('repo8', 0.6), ('repo9', 0.6), ('repo10', 0.6), ('repo11', 0.6), ('repo12', 0.6), ('repo13', 5.6), ('repo14', '5.7.1'), ('repo15', '5.9.1'), ('repo16', 0), ('repo17', 0), ('repo18', 0), ('repo19', 0)]")
+data = [{'repo': 'repo2', 'tag': 0.6}, {'repo': 'repo3', 'tag': 0.6}, {'repo': 'repo4', 'tag': 0.6}, {'repo': 'repo5', 'tag': 0.6}, {'repo': 'repo6', 'tag': 0.6}, {'repo': 'repo7', 'tag': 0.6}, {'repo': 'repo8', 'tag': 0.6}, {'repo': 'repo9', 'tag': 0.6}, {'repo': 'repo10', 'tag': 0.6}, {'repo': 'repo11', 'tag': 0.6}, {'repo': 'repo12', 'tag': 0.6}, {'repo': 'repo13', 'tag': 5.6}, {'repo': 'repo14', 'tag': '5.7.1'}, {'repo': 'repo15', 'tag': '5.9.1'}, {'repo': 'repo16', 'tag': 0}, {'repo': 'repo17', 'tag': 0}, {'repo': 'repo18', 'tag': 0}, {'repo': 'repo19', 'tag': 0}]
+data.forEach(element => {
+    console.log(element)
+});
