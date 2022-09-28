@@ -9,6 +9,10 @@ on:
       - "intergration.yml"
     types: [ opened, synchronize ]
 
+concurrency:
+  group: ${{ github.workflow }}-pull/${{ github.event.number }}
+  cancel-in-progress: true
+
 jobs:
   parsec_intergration:
     runs-on: ubuntu-latest
@@ -223,7 +227,6 @@ jobs:
 
       - name: Get token using github-script
         id: get-token
-        if: github.event.pull_request.merged
         uses: actions/github-script@v6
         with:
           script: |
