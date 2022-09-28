@@ -90,7 +90,7 @@ jobs:
             datas = ${{ steps.parsec_intergration.outputs.illegal_tags }}
             let COMMENT_BODY
             if ( datas !== undefined) {
-              COMMENT_BODY = "Listed Repo And Tag pair not exists: \n|repo|tag|\n|-|-|\n"
+              COMMENT_BODY = "Listed repo and tag pairs are not exists: \n|repo|tag|\n|-|-|\n"
               datas.forEach(data => {
                 COMMENT_BODY += "|" + data["repo"] + "|" + data["tag"] + "|\n"
               })
@@ -137,7 +137,7 @@ jobs:
           script: |
             const BOT_NAME = "INTERGRATION Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
-            const COMMENT_BODY = "INTERGRATION: ${{ needs.parsec_intergration.outputs.message }}"
+            const COMMENT_BODY = "Integration Details: ${{ needs.parsec_intergration.outputs.message }}"
             const response = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -218,10 +218,21 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              labels: [
-                'Merged'
-              ]
+              labels: ['Merged']
             })
+      - name: close this pull request
+        shell: python
+        run: |
+          import requests
+          import os
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization":"Bearer " + os.environ.get("GITHUB_TOKEN")
+          }
+          res = requests.patch(url="https://api.github.com/repos/deepin-community/${{ github.event.repository.name }}/pulls/${{ github.event.issue.number }}",
+            headers=headers, data = {"state": "closed"})
+          print(res.text)
 
   # ten level build task
   build-order-0:
