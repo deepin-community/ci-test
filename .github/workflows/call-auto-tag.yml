@@ -8,7 +8,7 @@ on:
     types: [ opened, closed, synchronize ]
 
 jobs:
-  parsec_command:
+  parsec_intergration:
     runs-on: ubuntu-latest
     outputs:
       build_matrix_0: ${{ steps.parsec_intergration.outputs.build_matrix_0 }}

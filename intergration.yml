@@ -61,3 +61,6 @@ repos:
     order: -1
   - repo: repo17
     tag: 0
+  - repo: repo18
+    tag: 0
+    order: -5
