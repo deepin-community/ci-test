@@ -1,7 +1,5 @@
 name: ingegration-request
 
-# https://github.com/actions/runner/issues/491#issuecomment-850884422 reason sue always() otherwise all next jobs will be skipped
-
 on:
   workflow_dispatch:
   pull_request_target:
@@ -27,7 +25,6 @@ jobs:
       build_matrix_7: ${{ steps.parsec_intergration.outputs.build_matrix_7 }}
       build_matrix_8: ${{ steps.parsec_intergration.outputs.build_matrix_8 }}
       build_matrix_9: ${{ steps.parsec_intergration.outputs.build_matrix_9 }}
-      message: ${{ steps.message.outputs.message }}
     steps:
       - name: checkout_pull_request
         uses: actions/checkout@v3
@@ -67,7 +64,8 @@ jobs:
               allRepos = [{"order": j,"data":{"payload": []}} for j in range(maxSize)]
               data = read_intergration()
               message = data.get("message", "")
-              print("::set-output name=message::" + "'" + message + "'")
+              with open("intergration_detail.md", "w+") as intergration_detail:
+                intergration_detail.write(message)
               for repo in data.get("repos"):
                   order = int(repo.get("order",0))
                   order = max(0, order) and min(order , maxSize - 1)
@@ -83,15 +81,6 @@ jobs:
           except BaseException as e:
               logging.error(e)
               exit(-10)
-      - name: message transfor
-        id: message
-        run: |
-          message=${{ steps.parsec_intergration.outputs.message }}
-          message="${message//'%'/'%25'}"
-          message="${message//$'\n'/'%0A'}"
-          message="${message//$'\r'/'%0D'}"
-          echo "::set-output name=message::$message"
-
 
       - name: illegal_tags
         uses: actions/github-script@v6
@@ -136,6 +125,11 @@ jobs:
             if ( datas !== undefined) {
               core.setFailed("some tags are not exsist!")
             }
+      - name: upload intergration detail
+        uses: actions/upload-artifact@v2
+        with:
+          name: intergration_detail.md
+          path: intergration_detail.md
 
   ouput_message:
     name: output
@@ -143,14 +137,22 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.pull_request.head.sha }}
     steps:
+      - name: download intergration detail
+        uses: actions/download-artifact@v2
+        with:
+          name: intergration_detail.md
+
       - name: create comment
         uses: actions/github-script@v6
         with:
           github-token: ${{ github.token }}
           script: |
+            const fs = require('fs');
+            let rawdata = fs.readFileSync('intergration_detail.md');
+            message = rawdata.toString();
             const BOT_NAME = "INTERGRATION Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
-            const COMMENT_BODY = "Integration Details: ${{ needs.parsec_intergration.outputs.message }}"
+            const COMMENT_BODY = "Integration Details: " + message
             const response = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
