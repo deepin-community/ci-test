@@ -94,7 +94,7 @@ jobs:
                 COMMENT_BODY += "|" + data["repo"] + "|" + data["tag"] + "|\n"
               })
             } else {
-              COMMENT_BODY = "All Repo And Tag pairs check passed!"
+              COMMENT_BODY = "All repo And tag pairs check passed!"
             }
 
             const response = await github.rest.issues.listComments({
@@ -119,7 +119,9 @@ jobs:
                   body: COMMENT_HEAD + COMMENT_BODY
               })
             }
-            core.setFailed("some tags are not exsist!")
+            if ( datas !== undefined) {
+              core.setFailed("some tags are not exsist!")
+            }
 
   ouput_message:
     name: output
