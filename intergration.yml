@@ -67,3 +67,6 @@ repos:
   - repo: repo19
     tag: 0
     order: -5
+  - repo: repo20
+    tag: 0
+    order: -5

@@ -85,7 +85,7 @@ jobs:
           script: |
             const BOT_NAME = "TagCheck Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
-            datas = JSON.parse(${{ steps.parsec_intergration.outputs.illegal_tags }})
+            datas = JSON.parse("${{ steps.parsec_intergration.outputs.illegal_tags }}")
             let COMMENT_BODY = "Listed Repo And Tag pair not exists: \n|repo|tag|\n|-|-|\n"
             datas.forEach(data => {
               COMMENT_BODY += "|" + data[0] + "|" + "data[1]" + "|\n"
