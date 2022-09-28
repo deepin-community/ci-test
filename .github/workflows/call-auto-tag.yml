@@ -69,6 +69,8 @@ jobs:
                   allRepos[order].get("data").get("payload").append(repo)
               if len(illegal_tags) > 0:
                   print("::set-output name=illegal_tags::" + str(illegal_tags))
+              else:
+                  print("::set-output name=illegal_tags::undefined")
               for order in allRepos:
                   if len(order.get("data").get("payload")) > 0:
                       print("::set-output name=build_matrix_" + str(order['order']) + "::" + str(order.get("data")))
@@ -84,7 +86,7 @@ jobs:
           script: |
             const BOT_NAME = "TagCheck Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
-            datas = ${{ steps.parsec_intergration.outputs.illegal_tags }} || undefined
+            datas = ${{ steps.parsec_intergration.outputs.illegal_tags }}
             if ( datas !== undefined) {
               let COMMENT_BODY = "Listed Repo And Tag pair not exists: \n|repo|tag|\n|-|-|\n"
               datas.forEach(data => {
