@@ -1,0 +1,27 @@
+name: merge into testing
+
+on:
+  workflow_call:
+    inputs:
+      topic:
+        required: true
+        type: string
+
+env:
+  TOPIC: ${{ inputs.topic }}
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: trigger build
+        run: |
+          echo begin merge into testing repo
+      
+      - name: merging
+        run: |
+          echo $TASK build in version $VERSION
+          DIFF=$((10-50+1))
+          R=$(($(($RANDOM%$DIFF))+X))
+          sleep $R
+          echo done

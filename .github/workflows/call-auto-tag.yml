@@ -5,7 +5,7 @@ on:
   pull_request_target:
     paths:
       - "intergration.yml"
-    types: [ opened, closed, synchronize ]
+    types: [ opened, synchronize ]
 
 jobs:
   parsec_intergration:
@@ -77,7 +77,6 @@ jobs:
           except BaseException as e:
               logging.error(e)
               exit(-10)
-
 
       - name: illegal_tags
         uses: actions/github-script@v6
@@ -159,6 +158,42 @@ jobs:
                   body: COMMENT_HEAD + COMMENT_BODY
               })
             }
+
+  deploy-repo:
+    name: merge topic repo
+    needs: 
+      - ouput_message
+      - build-order-9
+    uses: deepin-community/ci-test/.github/workflows/merge-into-testing.yml@master
+    with:
+      topic: pr-${{ github.event.number }}
+  
+  close-pullrequest:
+    name: close this pull request
+    needs: deploy-repo
+    runs-on: ubuntu-latest
+    steps:
+      - name: lable intergerted
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { data } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const labeled = (data.find(label => label.name === "Merged") !== undefined)
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: [
+                'Merged'
+              ]
+            })
 
   build-order-0:
     name: build-order-0
