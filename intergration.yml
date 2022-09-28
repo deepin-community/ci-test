@@ -1,4 +1,10 @@
-message: "Integrated for 23 preview"
+message: |
+  v23preview zssh intergration
+  packages:
+     | repo | details |
+     | - | - |
+     | ci-test| feat add new style |
+     | zssh | init for v23 preview |
 repos: 
 
   - repo: repo1
