@@ -231,7 +231,7 @@ jobs:
     uses: deepin-community/ci-test/.github/workflows/merge-into-testing.yml@master
     if: |
       always() &&
-      (needs.parsec_intergration.result == 'success') && (needs.ouput_message.result == 'success')
+      (needs.parsec_intergration.result == 'success') && (needs.ouput_message.result == 'success') &&
       (needs.build-order-0.result == 'success' || needs.build-order-0.result == 'skipped') &&
       (needs.build-order-1.result == 'success' || needs.build-order-1.result == 'skipped') &&
       (needs.build-order-2.result == 'success' || needs.build-order-2.result == 'skipped') &&
