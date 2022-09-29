@@ -1,7 +1,6 @@
 name: ingegration-request
 
 on:
-  workflow_dispatch:
   pull_request_target:
     paths:
       - "intergration.yml"
@@ -29,7 +28,7 @@ jobs:
       - name: checkout_pull_request
         uses: actions/checkout@v3
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.ref  }}
+          ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
 
       - name: parsec_intergration
@@ -45,6 +44,12 @@ jobs:
 
           maxSize = os.environ.get("MAX_TASKS", 10)
           illegal_tags = []
+          illegal_repos = []
+          permissions = None
+          with open("permissions.yml") as permissions_file:
+              permissions = yaml.load(permissions_file, Loader=yaml.BaseLoader)
+
+          not_allowed_repo = permissions.get("noauto")
 
           header = {
               "Accept": "application/vnd.github+json",
@@ -53,18 +58,20 @@ jobs:
 
           def read_intergration():
               with open("intergration.yml", "r+") as intergration_file:
-                  return yaml.safe_load(intergration_file)
+                  return yaml.load(intergration_file, Loader=yaml.BaseLoader)
 
           def check_tag_exsist(repo, tag):
               res = requests.get("https://api.github.com/repos/deepin-community/{repo}/git/ref/tags/{tag}".format(repo=repo, tag=tag), headers=header)
               if res.status_code != 200:
                   illegal_tags.append({"repo": repo, "tag": tag})
+              if repo in not_allowed_repo:
+                illegal_repos.appen(repo)
 
           try:
               allRepos = [{"order": j,"data":{"payload": []}} for j in range(maxSize)]
               data = read_intergration()
               message = data.get("message", "")
-              with open("intergration-pr-${{ github.event.number }}-detail.md", "w+") as intergration_detail:
+              with open("intergration-${{ github.event.number }}-detail.md", "w+") as intergration_detail:
                 intergration_detail.write(message)
               for repo in data.get("repos"):
                   order = int(repo.get("order",0))
@@ -75,6 +82,10 @@ jobs:
                   print("::set-output name=illegal_tags::" + str(illegal_tags))
               else:
                   print("::set-output name=illegal_tags::undefined")
+              if len(illegal_repos) > 0:
+                  print(print("::set-output name=illegal_repos::" + str(illegal_repos)))
+              else:
+                  print("::set-output name=illegal_repos::undefined")
               for order in allRepos:
                   if len(order.get("data").get("payload")) > 0:
                       print("::set-output name=build_matrix_" + str(order['order']) + "::" + str(order.get("data")))
@@ -87,15 +98,28 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
-            const BOT_NAME = "TagCheck Bot"
+            const BOT_NAME = "RepoTagCheck Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
-            datas = ${{ steps.parsec_intergration.outputs.illegal_tags }}
+            illegal_tags = ${{ steps.parsec_intergration.outputs.illegal_tags }}
+            illegal_repos = ${{ steps.parsec_intergration.outputs.illegal_repos }}
             let COMMENT_BODY
-            if ( datas !== undefined) {
-              COMMENT_BODY = "Listed repo and tag pairs are not exists: \n|repo|tag|\n|-|-|\n"
-              datas.forEach(data => {
-                COMMENT_BODY += "|" + data["repo"] + "|" + data["tag"] + "|\n"
-              })
+            if ( illegal_tags !== undefined || illegal_repos !== undefined ) {
+              COMMENT_BODY = "Check failed!\n"
+
+              if ( illegal_tags !== undefined ) {
+                  COMMENT_BODY += "Listed repo and tag pairs are not exists: \n|repo|tag|\n|-|-|\n"
+                  illegal_tags.forEach(tag => {
+                    COMMENT_BODY += "|" + tag["repo"] + "|" + tag["tag"] + "|\n"
+                  })
+              }
+
+              if ( illegal_repos !== undefined ) {
+                  COMMENT_BODY += "Listed repos are not allowed by automatic intergration: \n|repo|\n|-|\n"
+                  illegal_repos.forEach(repo => {
+                    COMMENT_BODY += "|" + repo + "|\n"
+                  })
+              }
+
             } else {
               COMMENT_BODY = "All repo and tag pairs check passed!"
             }
@@ -128,8 +152,8 @@ jobs:
       - name: upload intergration detail
         uses: actions/upload-artifact@v2
         with:
-          name: intergration-pr-${{ github.event.number }}-detail.md
-          path: intergration-pr-${{ github.event.number }}-detail.md
+          name: intergration-${{ github.event.number }}-detail.md
+          path: intergration-${{ github.event.number }}-detail.md
 
   ouput_message:
     name: output
@@ -140,7 +164,7 @@ jobs:
       - name: download intergration detail
         uses: actions/download-artifact@v2
         with:
-          name: intergration-pr-${{ github.event.number }}-detail.md
+          name: intergration-${{ github.event.number }}-detail.md
 
       - name: create comment
         uses: actions/github-script@v6
@@ -148,10 +172,10 @@ jobs:
           github-token: ${{ github.token }}
           script: |
             const fs = require('fs');
-            let rawdata = fs.readFileSync('intergration-pr-${{ github.event.number }}-detail.md');
+            let rawdata = fs.readFileSync('intergration-${{ github.event.number }}-detail.md');
             let message = rawdata.toString();
             if (message.includes("CVE")) {
-              message += "\nCVE detected @deepin-community/ci"
+              message += "\nCVE detected @ deepin-community/ci"
             }
             const BOT_NAME = "INTERGRATION Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
