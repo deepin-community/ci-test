@@ -154,9 +154,9 @@ jobs:
             }
 
             if ( illegal_repos !== undefined) {
-              core.setOutput('DEPLOY', 'AUTO')
-            } else {
               core.setOutput('DEPLOY', 'MANUALLY')
+            } else {
+              core.setOutput('DEPLOY', 'AUTO')
             }
 
       - name: upload intergration detail
@@ -185,7 +185,7 @@ jobs:
             let rawdata = fs.readFileSync('intergration-${{ github.event.number }}-detail.md');
             let message = rawdata.toString();
             if (message.includes("CVE")) {
-              message += "\nCVE detected @ deepin-community/ci"
+              message += "\nCVE detected @deepin-community/ci"
             }
             const BOT_NAME = "INTERGRATION Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
