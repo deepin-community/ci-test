@@ -24,6 +24,7 @@ jobs:
       build_matrix_7: ${{ steps.parsec_intergration.outputs.build_matrix_7 }}
       build_matrix_8: ${{ steps.parsec_intergration.outputs.build_matrix_8 }}
       build_matrix_9: ${{ steps.parsec_intergration.outputs.build_matrix_9 }}
+      deply: ${{ steps.illegal_repo_tags.outputs.DEPLOY }}
     steps:
       - name: checkout_pull_request
         uses: actions/checkout@v3
@@ -145,8 +146,15 @@ jobs:
                   body: COMMENT_HEAD + COMMENT_BODY
               })
             }
-            if ( illegal_tags !== undefined || illegal_repos !== undefined) {
+
+            if ( illegal_tags !== undefined ) {
               core.setFailed("some tags are not exsist!")
+            }
+
+            if ( illegal_repos !== undefined) {
+              core.setOutput('DEPLOY', 'AUTO')
+            } else {
+              core.setOutput('DEPLOY', 'MANUALLY')
             }
 
       - name: upload intergration detail
@@ -207,7 +215,8 @@ jobs:
   # this jobs used for merge topic into testing
   deploy-repo:
     name: merge topic repo
-    needs: 
+    needs:
+      - parsec_intergration
       - ouput_message
       - build-order-0
       - build-order-1
@@ -222,7 +231,7 @@ jobs:
     uses: deepin-community/ci-test/.github/workflows/merge-into-testing.yml@master
     if: |
       always() &&
-      (needs.ouput_message.result == 'success') &&
+      (needs.parsec_intergration.result == 'success') && (needs.ouput_message.result == 'success')
       (needs.build-order-0.result == 'success' || needs.build-order-0.result == 'skipped') &&
       (needs.build-order-1.result == 'success' || needs.build-order-1.result == 'skipped') &&
       (needs.build-order-2.result == 'success' || needs.build-order-2.result == 'skipped') &&
@@ -235,6 +244,7 @@ jobs:
       (needs.build-order-9.result == 'success' || needs.build-order-9.result == 'skipped')
     with:
       topic: intergration-pr-${{ github.event.number }}
+      deploy: ${{ needs.parsec_intergration.outputs.deply }}
 
   # merge finished and success, closing this pr
   close-pull-request:

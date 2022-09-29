@@ -6,18 +6,23 @@ on:
       topic:
         required: true
         type: string
+      deploy:
+        required: true
+        type: string
 
 env:
   TOPIC: ${{ inputs.topic }}
 
 jobs:
   merge:
+    name: merge repo
     runs-on: ubuntu-latest
+    environment:  ${{ inputs.deploy }}
     steps:
       - name: trigger build
         run: |
           echo begin merge into testing repo
-      
+
       - name: merging
         run: |
           echo $TASK build in version $VERSION
