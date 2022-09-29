@@ -104,11 +104,10 @@ jobs:
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
             illegal_tags = ${{ steps.parsec_intergration.outputs.illegal_tags }}
             illegal_repos = ${{ steps.parsec_intergration.outputs.illegal_repos }}
-            let COMMENT_BODY
+            let COMMENT_BODY = ""
             if ( illegal_tags !== undefined || illegal_repos !== undefined ) {
               if ( illegal_tags !== undefined ) {
-                  COMMENT_BODY = "Check failed!\n"
-                  COMMENT_BODY += "Listed repo and tag pairs are not exists: \n|repo|tag|\n|-|-|\n"
+                  COMMENT_BODY += "Check failed!\nListed repo and tag pairs are not exists: \n|repo|tag|\n|-|-|\n"
                   illegal_tags.forEach(tag => {
                     COMMENT_BODY += "|" + tag["repo"] + "|" + tag["tag"] + "|\n"
                   })
@@ -184,7 +183,7 @@ jobs:
             let rawdata = fs.readFileSync('intergration-${{ github.event.number }}-detail.md');
             let message = rawdata.toString();
             if (message.includes("CVE")) {
-              message += "\nCVE detected @deepin-community/ci \n"
+              message += "\n@deepin-community/ci CVE detected\n"
             }
             const BOT_NAME = "INTERGRATION Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
