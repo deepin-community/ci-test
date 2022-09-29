@@ -112,6 +112,7 @@ jobs:
                   illegal_tags.forEach(tag => {
                     COMMENT_BODY += "|" + tag["repo"] + "|" + tag["tag"] + "|\n"
                   })
+                  COMMENT_BODY += "\n"
               }
 
               if ( illegal_repos !== undefined ) {
