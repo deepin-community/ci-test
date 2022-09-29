@@ -93,7 +93,7 @@ jobs:
               logging.error(e)
               exit(-10)
 
-      - name: illegal_tags
+      - name: illegal_repo_tags
         uses: actions/github-script@v6
         with:
           github-token: ${{ github.token }}
@@ -145,7 +145,7 @@ jobs:
                   body: COMMENT_HEAD + COMMENT_BODY
               })
             }
-            if ( datas !== undefined) {
+            if ( illegal_tags !== undefined || illegal_repos !== undefined) {
               core.setFailed("some tags are not exsist!")
             }
 
