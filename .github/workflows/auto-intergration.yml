@@ -95,6 +95,7 @@ jobs:
               exit(-10)
 
       - name: illegal_repo_tags
+        id: illegal_repo_tags
         uses: actions/github-script@v6
         with:
           github-token: ${{ github.token }}
