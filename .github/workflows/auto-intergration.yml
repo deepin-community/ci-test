@@ -65,7 +65,7 @@ jobs:
               if res.status_code != 200:
                   illegal_tags.append({"repo": repo, "tag": tag})
               if repo in not_allowed_repo:
-                illegal_repos.appen(repo)
+                illegal_repos.append(repo)
 
           try:
               allRepos = [{"order": j,"data":{"payload": []}} for j in range(maxSize)]
