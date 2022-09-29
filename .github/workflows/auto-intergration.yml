@@ -64,7 +64,7 @@ jobs:
               allRepos = [{"order": j,"data":{"payload": []}} for j in range(maxSize)]
               data = read_intergration()
               message = data.get("message", "")
-              with open("intergration_detail.md", "w+") as intergration_detail:
+              with open("intergration-pr-${{ github.event.number }}-detail.md", "w+") as intergration_detail:
                 intergration_detail.write(message)
               for repo in data.get("repos"):
                   order = int(repo.get("order",0))
@@ -124,6 +124,7 @@ jobs:
             if ( datas !== undefined) {
               core.setFailed("some tags are not exsist!")
             }
+
       - name: upload intergration detail
         uses: actions/upload-artifact@v2
         with:
