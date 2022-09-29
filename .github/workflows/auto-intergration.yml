@@ -151,7 +151,7 @@ jobs:
             let rawdata = fs.readFileSync('intergration-pr-${{ github.event.number }}-detail.md');
             let message = rawdata.toString();
             if (message.includes("CVE")) {
-              message += "\n+CVE detected @deepin-community/CI"
+              message += "\nCVE detected @deepin-community/ci"
             }
             const BOT_NAME = "INTERGRATION Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
@@ -296,6 +296,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_0) }}
     uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
     with:
       repo: ${{ matrix.payload.repo }}
       tag: ${{ matrix.payload.tag }}
@@ -309,6 +310,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_1) }}
     uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
     with:
       repo: ${{ matrix.payload.repo }}
       tag: ${{ matrix.payload.tag }}
@@ -322,6 +324,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_2) }}
     uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
     with:
       repo: ${{ matrix.payload.repo }}
       tag: ${{ matrix.payload.tag }}
@@ -335,6 +338,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_3) }}
     uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
     with:
       repo: ${{ matrix.payload.repo }}
       tag: ${{ matrix.payload.tag }}
@@ -348,6 +352,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_4) }}
     uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
     with:
       repo: ${{ matrix.payload.repo }}
       tag: ${{ matrix.payload.tag }}
@@ -362,6 +367,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_5) }}
     uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
     with:
       repo: ${{ matrix.payload.repo }}
       tag: ${{ matrix.payload.tag }}
@@ -375,6 +381,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_6) }}
     uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
     with:
       repo: ${{ matrix.payload.repo }}
       tag: ${{ matrix.payload.tag }}
@@ -388,6 +395,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_7) }}
     uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
     with:
       repo: ${{ matrix.payload.repo }}
       tag: ${{ matrix.payload.tag }}
@@ -401,6 +409,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_8) }}
     uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
     with:
       repo: ${{ matrix.payload.repo }}
       tag: ${{ matrix.payload.tag }}
@@ -414,6 +423,7 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_9) }}
     uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
     with:
       repo: ${{ matrix.payload.repo }}
       tag: ${{ matrix.payload.tag }}
