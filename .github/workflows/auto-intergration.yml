@@ -26,6 +26,13 @@ jobs:
       build_matrix_9: ${{ steps.parsec_intergration.outputs.build_matrix_9 }}
       deply: ${{ steps.illegal_repo_tags.outputs.DEPLOY }}
     steps:
+      - name: check preview workflows
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            core.setoutput("test")
+
       - name: checkout_pull_request
         uses: actions/checkout@v3
         with:
