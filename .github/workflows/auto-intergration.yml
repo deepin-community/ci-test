@@ -1,0 +1,514 @@
+name: ingegration-request
+
+on:
+  pull_request_target:
+    paths:
+      - "intergration.yml"
+    types: [ opened, synchronize ]
+
+concurrency:
+  group: ${{ github.workflow }}-pull/${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  parsec_intergration:
+    runs-on: ubuntu-latest
+    outputs:
+      build_matrix_0: ${{ steps.parsec_intergration.outputs.build_matrix_0 }}
+      build_matrix_1: ${{ steps.parsec_intergration.outputs.build_matrix_1 }}
+      build_matrix_2: ${{ steps.parsec_intergration.outputs.build_matrix_2 }}
+      build_matrix_3: ${{ steps.parsec_intergration.outputs.build_matrix_3 }}
+      build_matrix_4: ${{ steps.parsec_intergration.outputs.build_matrix_4 }}
+      build_matrix_5: ${{ steps.parsec_intergration.outputs.build_matrix_5 }}
+      build_matrix_6: ${{ steps.parsec_intergration.outputs.build_matrix_6 }}
+      build_matrix_7: ${{ steps.parsec_intergration.outputs.build_matrix_7 }}
+      build_matrix_8: ${{ steps.parsec_intergration.outputs.build_matrix_8 }}
+      build_matrix_9: ${{ steps.parsec_intergration.outputs.build_matrix_9 }}
+      all_build_task: ${{ steps.parsec_intergration.outputs.all_build_task }}
+      deply: ${{ steps.illegal_repo_tags.outputs.DEPLOY }}
+    steps:
+      - name: checkout_pull_request
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: parsec_intergration
+        id: parsec_intergration
+        shell: python
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          import requests
+          import yaml
+          import os
+          import logging
+
+          maxSize = os.environ.get("MAX_TASKS", 10)
+          illegalTags = []
+          illegalRepos = []
+
+          permissions = None
+          with open("permissions.yml") as permissions_file:
+              permissions = yaml.load(permissions_file, Loader=yaml.BaseLoader)
+          not_allowed_repo = permissions.get("noauto")
+
+          header = {
+              "Accept": "application/vnd.github+json",
+              "Authorization":"Bearer " + os.environ.get("GITHUB_TOKEN")
+          }
+
+          def read_intergration():
+              with open("intergration.yml", "r+") as intergration_file:
+                  return yaml.load(intergration_file, Loader=yaml.BaseLoader)
+
+          def check_tag_exsist(repo, tag):
+              res = requests.get("https://api.github.com/repos/deepin-community/{repo}/git/ref/tags/{tag}".format(repo=repo, tag=tag), headers=header)
+              if res.status_code != 200:
+                  illegalTags.append({"repo": repo, "tag": tag})
+              if repo in not_allowed_repo:
+                  illegalRepos.append(repo)
+
+          try:
+              allBuildTasks = [{"order": j,"data":{"payload": []}} for j in range(maxSize)]
+              data = read_intergration()
+
+              message = data.get("message", "")
+              with open("intergration-${{ github.event.number }}-detail.md", "w+") as intergration_detail:
+                  intergration_detail.write(message)
+
+              for repo in data.get("repos"):
+                  order = int(repo.get("order",0))
+                  order = max(0, order) and min(order , maxSize - 1)
+                  check_tag_exsist(repo.get('repo'), repo.get('tag'))
+                  allBuildTasks[order].get("data").get("payload").append(repo)
+
+              if len(illegalTags) > 0:
+                  print("::set-output name=illegal_tags::" + str(illegalTags))
+              else:
+                  print("::set-output name=illegal_tags::undefined")
+
+
+              if len(illegalRepos) > 0:
+                  print(print("::set-output name=illegal_repos::" + str(illegalRepos)))
+              else:
+                  print("::set-output name=illegal_repos::undefined")
+
+              allRepos = []
+              for order in allBuildTasks:
+                  for repo in order.get("data").get("payload"):
+                      allRepos.append(repo)
+                  if len(order.get("data").get("payload")) > 0:
+                      print("::set-output name=build_matrix_" + str(order['order']) + "::" + str(order.get("data")))
+              print("::set-output name=all_build_task::" + str(allRepos))
+
+          except BaseException as e:
+              logging.error(e)
+              exit(-10)
+
+
+      - name: illegal_repo_tags
+        id: illegal_repo_tags
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const BOT_NAME = "RepoTagCheck Bot"
+            const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
+            illegal_tags = ${{ steps.parsec_intergration.outputs.illegal_tags }}
+            illegal_repos = ${{ steps.parsec_intergration.outputs.illegal_repos }}
+            let COMMENT_BODY = ""
+            if ( illegal_tags !== undefined || illegal_repos !== undefined ) {
+              if ( illegal_tags !== undefined ) {
+                  COMMENT_BODY += "Check failed!\nListed repo and tag pairs are not exists: \n|repo|tag|\n|-|-|\n"
+                  illegal_tags.forEach(tag => {
+                    COMMENT_BODY += "|" + tag["repo"] + "|" + tag["tag"] + "|\n"
+                  })
+                  COMMENT_BODY += "\n"
+              }
+
+              if ( illegal_repos !== undefined ) {
+                  COMMENT_BODY += "Listed repos are not allowed by automatic intergration: \n|repo|\n|-|\n"
+                  illegal_repos.forEach(repo => {
+                    COMMENT_BODY += "|" + repo + "|\n"
+                  })
+              }
+
+            } else {
+              COMMENT_BODY = "All repo and tag pairs check passed!"
+            }
+            const response = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            })
+            const reg = new RegExp("\\*+" + BOT_NAME + "\\*+")
+            tagBotComment= response.data.find(comment => comment.body.match(reg))
+            if (tagBotComment) {
+              await github.rest.issues.updateComment({
+                  comment_id: tagBotComment.id,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: COMMENT_HEAD + COMMENT_BODY
+              })
+            } else {
+              await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: COMMENT_HEAD + COMMENT_BODY
+              })
+            }
+
+            if ( illegal_tags !== undefined ) {
+              core.setFailed("some tags are not exsist!")
+            }
+
+            if ( illegal_repos !== undefined) {
+              core.setOutput('DEPLOY', 'MANUALLY')
+            } else {
+              core.setOutput('DEPLOY', 'AUTO')
+            }
+
+      - name: upload intergration detail
+        uses: actions/upload-artifact@v2
+        with:
+          name: intergration-${{ github.event.number }}-detail.md
+          path: intergration-${{ github.event.number }}-detail.md
+
+  ouput_message:
+    name: output
+    needs: parsec_intergration
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: download intergration detail
+        uses: actions/download-artifact@v2
+        with:
+          name: intergration-${{ github.event.number }}-detail.md
+
+      - name: create comment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const fs = require('fs');
+            let rawdata = fs.readFileSync('intergration-${{ github.event.number }}-detail.md');
+            let message = rawdata.toString();
+            if (message.includes("CVE")) {
+              message += "\n @deepin-community/ci CVE detected\n"
+            }
+            const BOT_NAME = "INTERGRATION Bot"
+            const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
+            const COMMENT_BODY = "Integration Details: " + message
+            const response = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            })
+            const reg = new RegExp("\\*+" + BOT_NAME + "\\*+")
+            tagBotComment= response.data.find(comment => comment.body.match(reg))
+            if (tagBotComment) {
+              await github.rest.issues.updateComment({
+                  comment_id: tagBotComment.id,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: COMMENT_HEAD + COMMENT_BODY
+              })
+            } else {
+              await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: COMMENT_HEAD + COMMENT_BODY
+              })
+            }
+  # https://github.com/actions/runner/issues/491#issuecomment-850884422 reason why use this if
+  # :( for this
+  # this jobs used for merge topic into testing
+  deploy-repo:
+    name: merge topic repo
+    needs:
+      - parsec_intergration
+      - ouput_message
+      - build-order-0
+      - build-order-1
+      - build-order-2
+      - build-order-3
+      - build-order-4
+      - build-order-5
+      - build-order-6
+      - build-order-7
+      - build-order-8
+      - build-order-9
+    uses: deepin-community/ci-test/.github/workflows/merge-into-testing.yml@master
+    if: |
+      always() && !cancelled() &&
+      (needs.parsec_intergration.result == 'success') && (needs.ouput_message.result == 'success') &&
+      (needs.build-order-0.result == 'success' || needs.build-order-0.result == 'skipped') &&
+      (needs.build-order-1.result == 'success' || needs.build-order-1.result == 'skipped') &&
+      (needs.build-order-2.result == 'success' || needs.build-order-2.result == 'skipped') &&
+      (needs.build-order-3.result == 'success' || needs.build-order-3.result == 'skipped') &&
+      (needs.build-order-4.result == 'success' || needs.build-order-4.result == 'skipped') &&
+      (needs.build-order-5.result == 'success' || needs.build-order-5.result == 'skipped') &&
+      (needs.build-order-6.result == 'success' || needs.build-order-6.result == 'skipped') &&
+      (needs.build-order-7.result == 'success' || needs.build-order-7.result == 'skipped') &&
+      (needs.build-order-8.result == 'success' || needs.build-order-8.result == 'skipped') &&
+      (needs.build-order-9.result == 'success' || needs.build-order-9.result == 'skipped')
+    with:
+      topic: intergration-pr-${{ github.event.number }}
+      deploy: ${{ needs.parsec_intergration.outputs.deply }}
+
+  # merge finished and success, closing this pr
+  close-pull-request:
+    name: close this pull request
+    needs: deploy-repo
+    runs-on: ubuntu-latest
+    # same as :(
+    if: always() && !cancelled() && (needs.deploy-repo.result == 'success')
+    steps:
+      - name: lable intergerted
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { data } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const labeled = (data.find(label => label.name === "Merged") !== undefined)
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['Merged']
+            })
+
+      - name: install depends for load scripts
+        run: |
+          npm install @octokit/rest
+          npm install @octokit/auth-app
+          npm install js-yaml
+
+      - name: Get token using github-script
+        id: get-token
+        uses: actions/github-script@v6
+        env:
+          APP_ID: 229710
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+        with:
+          script: |
+            const { Octokit } = require("@octokit/rest");
+            const { createAppAuth } = require("@octokit/auth-app");
+            const appOctokit = new Octokit({
+              authStrategy: createAppAuth,
+              auth: {
+                appId: process.env.APP_ID,
+                privateKey: process.env.APP_PRIVATE_KEY,
+              }
+            });
+            const app_installation = await appOctokit.rest.apps.getRepoInstallation({
+              owner: context.payload.organization.login,
+              repo: context.payload.repository.name
+            });
+            const { token } = await appOctokit.auth({
+              type: "installation",
+              installationId: app_installation.data.id
+            });
+            core.setOutput('app_token', token)
+
+      - name: update records
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ steps.get-token.outputs.app_token }}
+          script: |
+            const yaml = require('js-yaml');
+            const newIntergrated = ${{ needs.parsec_intergration.outputs.all_build_task }}
+            const {data} = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: "records.yml",
+            });
+            datas = atob(data.content)
+            recordsContent = yaml.load(datas)
+
+            if (recordsContent.record === null) {
+                recordsContent.record = {}
+            }
+
+            newIntergrated.forEach(repo => {
+                recordsContent.record[repo.repo] = {"ver": repo.tag, "date": new Date().toISOString().split('T')[0], "pr": ${{ github.event.number }}}
+            })
+
+            const contentString = yaml.dump(recordsContent, {'sortKeys': true ,indent: 4})
+
+            let contentBinary = Buffer.from(contentString).toString("base64")
+            await github.rest.repos.createOrUpdateFileContents({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha: data.sha,
+                path: "records.yml",
+                message: "update records from https://github.com/deepin-community/ci-test/pull/${{ github.event.number }}",
+                content: contentBinary,
+                branch: "master",
+            })
+
+      - name: close this pull request
+        shell: python
+        env:
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.app_token }}
+        run: |
+          import requests
+          import os
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization":"Bearer " + os.environ.get("GITHUB_TOKEN")
+          }
+          res = requests.patch(url="https://api.github.com/repos/deepin-community/${{ github.event.repository.name }}/pulls/${{ github.event.number }}",
+            headers=headers, json= {'state': 'closed'})
+          print(res.text)
+
+  # ten level build task
+  build-order-0:
+    name: build-order-0
+    if: always() && !cancelled() && (needs.parsec_intergration.outputs.build_matrix_0 != '') && (needs.parsec_intergration.result == 'success')
+    needs: parsec_intergration
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_0) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+      topic: intergration-pr-${{ github.event.number }}
+
+  build-order-1:
+    if: always() && !cancelled() && (needs.parsec_intergration.outputs.build_matrix_1 != '') && (needs.parsec_intergration.result == 'success')
+    needs: 
+      - parsec_intergration
+      - build-order-0
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_1) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+      topic: intergration-pr-${{ github.event.number }}
+
+  build-order-2:
+    if: always() && !cancelled() && ( needs.parsec_intergration.outputs.build_matrix_2 != '') && (needs.parsec_intergration.result == 'success')
+    needs:
+      - parsec_intergration
+      - build-order-1
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_2) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+      topic: intergration-pr-${{ github.event.number }}
+
+  build-order-3:
+    if: always() && !cancelled() && ( needs.parsec_intergration.outputs.build_matrix_3 != '') && (needs.parsec_intergration.result == 'success')
+    needs: 
+      - parsec_intergration
+      - build-order-2
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_3) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+      topic: intergration-pr-${{ github.event.number }}
+
+  build-order-4:
+    if: always() && !cancelled() && ( needs.parsec_intergration.outputs.build_matrix_4 != '') && (needs.parsec_intergration.result == 'success')
+    needs: 
+      - parsec_intergration
+      - build-order-3
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_4) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+      topic: intergration-pr-${{ github.event.number }}
+
+  build-order-5:
+    name: build-order-5
+    if: always() && !cancelled() && ( needs.parsec_intergration.outputs.build_matrix_5 != '') && (needs.parsec_intergration.result == 'success')
+    needs:
+      - parsec_intergration
+      - build-order-4
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_5) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+      topic: intergration-pr-${{ github.event.number }}
+
+  build-order-6:
+    if: always() && !cancelled() && ( needs.parsec_intergration.outputs.build_matrix_6 != '') && (needs.parsec_intergration.result == 'success')
+    needs:
+      - parsec_intergration
+      - build-order-5
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_6) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+      topic: intergration-pr-${{ github.event.number }}
+
+  build-order-7:
+    if: always() && !cancelled() && ( needs.parsec_intergration.outputs.build_matrix_7 != '') && (needs.parsec_intergration.result == 'success')
+    needs:
+      - parsec_intergration
+      - build-order-6
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_7) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+      topic: intergration-pr-${{ github.event.number }}
+
+  build-order-8:
+    if: always() && !cancelled() && ( needs.parsec_intergration.outputs.build_matrix_8 != '') && (needs.parsec_intergration.result == 'success')
+    needs: 
+      - parsec_intergration
+      - build-order-7
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_8) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+      topic: intergration-pr-${{ github.event.number }}
+
+  build-order-9:
+    if: always() && !cancelled() && ( needs.parsec_intergration.outputs.build_matrix_9 != '') && (needs.parsec_intergration.result == 'success')
+    needs: 
+      - parsec_intergration
+      - build-order-8
+    strategy:
+      matrix: ${{ fromJson(needs.parsec_intergration.outputs.build_matrix_9) }}
+    uses: deepin-community/ci-test/.github/workflows/jenkins-build.yml@master
+    secrets: inherit
+    with:
+      repo: ${{ matrix.payload.repo }}
+      tag: ${{ matrix.payload.tag }}
+      topic: intergration-pr-${{ github.event.number }}
