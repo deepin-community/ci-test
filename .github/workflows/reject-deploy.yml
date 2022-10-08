@@ -1,0 +1,27 @@
+name: auto reject
+
+on:
+  pull_request_target:
+    paths:
+      - "intergration.yml"
+    types: [ closed ]
+
+concurrency:
+  group: ${{ github.workflow }}-pull/${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  tag-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: trigger build
+        run: |
+          echo begin merge into testing repo
+
+      - name: merging
+        run: |
+          echo $TASK build in version $VERSION
+          DIFF=$((10-50+1))
+          R=$(($(($RANDOM%$DIFF))+X))
+          sleep $R
+          echo done
