@@ -1,0 +1,41 @@
+name: build on jenkins
+
+on:
+  workflow_call:
+    inputs:
+      repo:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+      topic:
+        required: true
+        type: string
+    secrets:
+      BridgeToken:
+        required: true
+
+env:
+  GITHUB_REPOSITORY: deepin-community/${{ inputs.repo }}
+  GITHUB_REF_NAME: ${{ inputs.tag }}
+  TOPIC: ${{ inputs.topic }}
+  GITHUB_TOKEN: ${{ github.token }}
+  BRIDGE_TOKEN: ${{ secrets.BridgeToken }}
+  SERVER: https://jenkins-bridge-deepin-pre.uniontech.com
+
+jobs:
+  tag-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: trigger build
+        run: |
+          echo begin merge into testing repo
+
+      - name: merging
+        run: |
+          echo $TASK build in version $VERSION
+          DIFF=$((10-50+1))
+          R=$(($(($RANDOM%$DIFF))+X))
+          sleep $R
+          echo done
