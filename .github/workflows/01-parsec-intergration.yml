@@ -100,6 +100,11 @@ jobs:
                   illegalTags.append({"repo": repo, "tag": tag})
               if repo in not_allowed_repo:
                   illegalRepos.append(repo)
+          
+          def set_output(name, value):
+              output_file = os.environ.get("GITHUB_OUTPUT")
+              with open(output_file, "w") as output:
+                  output.write(name + "=" + value + "\n")
 
           try:
               allBuildTasks = [{"order": j,"data":{"payload": []}} for j in range(maxSize)]
@@ -116,13 +121,17 @@ jobs:
                   allBuildTasks[order].get("data").get("payload").append(repo)
 
               if len(illegalTags) > 0:
-                  print("::set-output name=illegal_tags::" + str(illegalTags))
+                  set_output("illegal_tags", str(illegalTags))
+                  # print("::set-output name=illegal_tags::" + str(illegalTags))
               else:
-                  print("::set-output name=illegal_tags::undefined")
+                  set_output("illegal_tags", "undefined")
+                  # print("::set-output name=illegal_tags::undefined")
 
               if len(illegalRepos) > 0:
-                  print(print("::set-output name=illegal_repos::" + str(illegalRepos)))
+                  set_output("illegal_repos", str(illegalRepos))
+                  # print(print("::set-output name=illegal_repos::" + str(illegalRepos)))
               else:
+                  set_output("illegal_repos", "undefined")
                   print("::set-output name=illegal_repos::undefined")
 
               allRepos = []
@@ -130,8 +139,10 @@ jobs:
                   for repo in order.get("data").get("payload"):
                       allRepos.append(repo)
                   if len(order.get("data").get("payload")) > 0:
-                      print("::set-output name=build_matrix_" + str(order['order']) + "::" + str(order.get("data")))
-              print("::set-output name=all_build_task::" + str(allRepos))
+                      set_output("build_matrix_" + str(order['order'], str(order.get("data")))
+                      # print("::set-output name=build_matrix_" + str(order['order']) + "::" + str(order.get("data")))
+              set_output("all_build_task", str(allRepos))
+              # print("::set-output name=all_build_task::" + str(allRepos))
 
           except BaseException as e:
               logging.error(e)
