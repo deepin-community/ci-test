@@ -23,6 +23,39 @@ jobs:
   # https://github.com/actions/runner/issues/491#issuecomment-850884422 reason why use this if
   # :( for this
   # this jobs used for merge topic into testing
+  auto-test:
+    name: auto test
+    needs:
+      - parsec_intergration
+      - ouput_message
+      - build-order-0
+      - build-order-1
+      - build-order-2
+      - build-order-3
+      - build-order-4
+      - build-order-5
+      - build-order-6
+      - build-order-7
+      - build-order-8
+      - build-order-9
+    uses: deepin-community/ci-test/.github/workflows/04-auto-test.yml@master
+    if: |
+      always() && !cancelled() &&
+      (needs.parsec_intergration.result == 'success') && (needs.ouput_message.result == 'success') &&
+      (needs.build-order-0.result == 'success' || needs.build-order-0.result == 'skipped') &&
+      (needs.build-order-1.result == 'success' || needs.build-order-1.result == 'skipped') &&
+      (needs.build-order-2.result == 'success' || needs.build-order-2.result == 'skipped') &&
+      (needs.build-order-3.result == 'success' || needs.build-order-3.result == 'skipped') &&
+      (needs.build-order-4.result == 'success' || needs.build-order-4.result == 'skipped') &&
+      (needs.build-order-5.result == 'success' || needs.build-order-5.result == 'skipped') &&
+      (needs.build-order-6.result == 'success' || needs.build-order-6.result == 'skipped') &&
+      (needs.build-order-7.result == 'success' || needs.build-order-7.result == 'skipped') &&
+      (needs.build-order-8.result == 'success' || needs.build-order-8.result == 'skipped') &&
+      (needs.build-order-9.result == 'success' || needs.build-order-9.result == 'skipped')
+    with:
+      topic: test-intergration-pr-${{ github.event.number }}
+      packages: ${{ needs.parsec_intergration.outputs.all_build_task }}
+
   deploy-repo:
     name: merge topic repo
     needs:
@@ -38,7 +71,9 @@ jobs:
       - build-order-7
       - build-order-8
       - build-order-9
+      - auto-test
     uses: deepin-community/ci-test/.github/workflows/05-merge-into-testing.yml@master
+    secrets: inherit
     if: |
       always() && !cancelled() &&
       (needs.parsec_intergration.result == 'success') && (needs.ouput_message.result == 'success') &&
@@ -51,7 +86,8 @@ jobs:
       (needs.build-order-6.result == 'success' || needs.build-order-6.result == 'skipped') &&
       (needs.build-order-7.result == 'success' || needs.build-order-7.result == 'skipped') &&
       (needs.build-order-8.result == 'success' || needs.build-order-8.result == 'skipped') &&
-      (needs.build-order-9.result == 'success' || needs.build-order-9.result == 'skipped')
+      (needs.build-order-9.result == 'success' || needs.build-order-9.result == 'skipped') &&
+      (needs.auto-test.result == 'success')
     with:
       topic: test-intergration-pr-${{ github.event.number }}
       deploy: ${{ needs.parsec_intergration.outputs.deply }}
