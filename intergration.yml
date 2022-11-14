@@ -4,3 +4,7 @@ repos:
   - repo: zssh
     tag: 1.5c.1
     order: 2
+    
+  - repo: xfonts-base
+    tag: 1%1.0.5+deepin+0u1
+    order: 2
