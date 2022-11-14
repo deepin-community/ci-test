@@ -1,6 +1,6 @@
 message: |
   Integrated for 23 preview
 repos: 
-  - repo: repo1
-    tag: 1
+  - repo: xfonts-base
+    tag: 1%1.0.5+deepin+0u1
     order: 2
