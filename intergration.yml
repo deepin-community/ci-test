@@ -1,6 +1,6 @@
 message: |
   Integrated for 23 preview
 repos: 
-  - repo: repo1
-    tag: 1
+  - repo: qtsvg-opensource-src
+    tag: 5.15.3-1+dde
     order: 2
