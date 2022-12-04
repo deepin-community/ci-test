@@ -59,5 +59,6 @@ jobs:
           }
           get_info_url= 'https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}'
           res = requests.get(get_info_url,header)
-          get_body = json.loads(res.text)['body']
+          json_str = json.loads(res.text)
+          get_body = json_str['body']
           print(get_body)
