@@ -162,7 +162,7 @@ jobs:
           github-token: ${{ steps.get-token.outputs.app_token }}
           script: |
             const yaml = require('js-yaml');
-            const newIntergrated = ${{ steps.get_info.outputs.illegal_repos }}
+            const newIntergrated = ${{ steps.get_info.outputs.illegal_tags }}
             const {data} = await github.rest.repos.getContent({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
