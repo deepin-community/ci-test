@@ -89,12 +89,11 @@ jobs:
             print(illegalTags)
             if len(illegalTags) > 0:
                 set_output("illegal_tags", str(illegalTags))
-                set_output("all_build_task", str(illegalTags))
             else:
                 set_output("illegal_tags", "undefined")
 
             if len(illegalTags) > 0:
-                set_output("illegal_repos", str(illegalTags))
+                set_output("illegal_repos", str(illegalRepos))
             else:
                 set_output("illegal_repos", "undefined")
 
