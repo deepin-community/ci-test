@@ -77,10 +77,10 @@ jobs:
           def analyze_info(str):
               for data in str.split('\n'):
                 if data.find("repo") == 0:
-                  repo = data.split(':')[1]
+                  repo = data.split(':')[1].strip()
                   illegalRepos.append(repo)
                 elif data.find("tag") == 0:
-                  tag = data.split(':')[1]
+                  tag = data.split(':')[1].strip()
                   illegalTags.append({"repo": repo, "tag": tag})
 
 
