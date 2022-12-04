@@ -4,13 +4,14 @@ on:
   pull_request_target:
     types: [opened, synchronize, closed]
 
+
 jobs:
   sync-info:
     name: record
+    if: github.event.pull_request.opened
     runs-on: ubuntu-latest
     steps:
       - name: install depends for load scripts
-        if: github.event.pull_request.opened
         run: |
           npm install @octokit/rest
           npm install @octokit/auth-app
@@ -44,6 +45,5 @@ jobs:
             core.setOutput('app_token', token)
 
       - name: update records
-        uses: actions/github-script@v2
         run: |
          echo "testing"
