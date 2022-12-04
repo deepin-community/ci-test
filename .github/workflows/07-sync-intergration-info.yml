@@ -83,7 +83,7 @@ jobs:
 
 
           try:
-            analyze_info(get_pulls_info)
+            analyze_info(get_pulls_info())
             print(illegalTags)
           except BaseException as e:
               logging.error(e)
