@@ -107,33 +107,12 @@ jobs:
         with:
           github-token: ${{ github.token }}
           script: |
-            const BOT_NAME = "RepoTagCheck Bot"
-            const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
-            illegal_tags = ${{ steps.get_info.outputs.illegal_tags }}
-            illegal_repos = ${{ steps.get_info.outputs.illegal_repos }}
-            let COMMENT_BODY = ""
             const response = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number
             })
-            const reg = new RegExp("\\*+" + BOT_NAME + "\\*+")
-            tagBotComment= response.data.find(comment => comment.body.match(reg))
-            if (tagBotComment) {
-              await github.rest.issues.updateComment({
-                  comment_id: tagBotComment.id,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: COMMENT_HEAD + COMMENT_BODY
-              })
-            } else {
-              await github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: COMMENT_HEAD + COMMENT_BODY
-              })
-            }
+
 
       - name: update records
         uses: actions/github-script@v6
