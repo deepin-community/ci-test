@@ -83,7 +83,13 @@ jobs:
 
 
           try:
-            analyze_info(get_pulls_info)
+            str = get_pulls_info
+            for data in str.split('\n'):
+              if data.find("repo") == 0:
+                repo = data.split(':')[1]
+              elif data.find("tag") == 0:
+                tag = data.split(':')[1]
+                illegalTags.append({"repo": repo, "tag": tag})            
             print(illegalTags)
           except BaseException as e:
               logging.error(e)
