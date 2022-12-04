@@ -135,16 +135,6 @@ jobs:
               })
             }
 
-            if ( illegal_tags !== undefined ) {
-              core.setFailed("some tags are not exsist!")
-            }
-
-            if ( illegal_repos !== undefined) {
-              core.setOutput('DEPLOY', 'MANUALLY')
-            } else {
-              core.setOutput('DEPLOY', 'AUTO')
-            }
-
       - name: update records
         uses: actions/github-script@v6
         with:
