@@ -57,8 +57,33 @@ jobs:
               "Accept": "application/vnd.github+json",
               "Authorization":"Bearer " + os.environ.get("GITHUB_TOKEN")
           }
-          get_info_url= 'https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}'
-          res = requests.get(get_info_url,header)
-          json_str = json.loads(res.text)
-          get_body = json_str['body']
-          print(get_body)
+          illegalTags = []
+          illegalRepos = []
+          
+          def set_output(name, value):
+              output_file = os.environ.get("GITHUB_OUTPUT")
+              with open(output_file, "a") as output:
+                  output.write(name + "=" + value + "\n")
+
+          def get_pulls_info():
+              get_info_url= 'https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}'
+              res = requests.get(get_info_url,header)
+              json_str = json.loads(res.text)
+              get_body = json_str['body']
+              return get_body
+
+          def analyze_info(str):
+              for data in str.split('\n'):
+                if data.find("repo") == 0:
+                  repo = data.split(':')[1]
+                elif data.find("tag") == 0:
+                  tag = data.split(':')[1]
+                  illegalTags.append({"repo": repo, "tag": tag})
+
+
+          try:
+            analyze_info(get_pulls_info)
+            print(illegalTags)
+          except BaseException as e:
+              logging.error(e)
+              exit(-10)
