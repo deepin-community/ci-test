@@ -109,8 +109,8 @@ jobs:
           script: |
             const BOT_NAME = "Start Bot"
             const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
-            illegal_tags = ${{ steps.parsec_intergration.outputs.illegal_tags }}
-            illegal_repos = ${{ steps.parsec_intergration.outputs.illegal_repos }}
+            illegal_tags = ${{ steps.get_info.outputs.illegal_tags }}
+            illegal_repos = ${{ steps.get_info.outputs.illegal_repos }}
             let COMMENT_BODY = "All repo and tag pairs check passed!"
 
             const response = await github.rest.issues.listComments({
