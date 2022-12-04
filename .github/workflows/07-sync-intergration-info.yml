@@ -165,7 +165,7 @@ jobs:
               core.setOutput('DEPLOY', 'AUTO')
             }
 
-        - name: update records
+      - name: update records
         uses: actions/github-script@v6
         with:
           github-token: ${{ steps.get-token.outputs.app_token }}
