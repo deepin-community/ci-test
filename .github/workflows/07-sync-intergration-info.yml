@@ -8,7 +8,6 @@ on:
 jobs:
   sync-info:
     name: record
-    if: github.event.pull_request.opened
     runs-on: ubuntu-latest
     steps:
       - name: install depends for load scripts
