@@ -5,8 +5,8 @@ on:
     types: [opened, synchronize, closed]
 
 jobs:
-  deployed:
-    name: feedback
+  sync-info:
+    name: record
     runs-on: ubuntu-latest
     steps:
       - name: install depends for load scripts
