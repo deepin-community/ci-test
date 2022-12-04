@@ -77,6 +77,7 @@ jobs:
               for data in str.split('\n'):
                 if data.find("repo") == 0:
                   repo = data.split(':')[1]
+                  illegalRepos.append(repo)
                 elif data.find("tag") == 0:
                   tag = data.split(':')[1]
                   illegalTags.append({"repo": repo, "tag": tag})
@@ -85,6 +86,152 @@ jobs:
           try:
             analyze_info(get_pulls_info())
             print(illegalTags)
+            if len(illegalTags) > 0:
+                set_output("illegal_tags", str(illegalTags))
+                set_output("all_build_task", str(illegalTags))
+            else:
+                set_output("illegal_tags", "undefined")
+
+            if len(illegalTags) > 0:
+                set_output("illegal_repos", str(illegalTags))
+            else:
+                set_output("illegal_repos", "undefined")
+
           except BaseException as e:
               logging.error(e)
               exit(-10)
+            
+      - name: illegal_repo_tags
+        id: illegal_repo_tags
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const BOT_NAME = "RepoTagCheck Bot"
+            const COMMENT_HEAD = "**" + BOT_NAME + "**\n\n"
+            illegal_tags = ${{ steps.sync-info.outputs.illegal_tags }}
+            illegal_repos = ${{ steps.sync-info.outputs.illegal_repos }}
+            let COMMENT_BODY = ""
+            if ( illegal_tags !== undefined || illegal_repos !== undefined ) {
+              if ( illegal_tags !== undefined ) {
+                  COMMENT_BODY += "Check failed!\nListed repo and tag pairs are not exists: \n|repo|tag|\n|-|-|\n"
+                  illegal_tags.forEach(tag => {
+                    COMMENT_BODY += "|" + tag["repo"] + "|" + tag["tag"] + "|\n"
+                  })
+                  COMMENT_BODY += "\n"
+              }
+
+              if ( illegal_repos !== undefined ) {
+                  COMMENT_BODY += "Listed repos are not allowed by automatic intergration: \n|repo|\n|-|\n"
+                  illegal_repos.forEach(repo => {
+                    COMMENT_BODY += "|" + repo + "|\n"
+                  })
+              }
+
+            } else {
+              COMMENT_BODY = "All repo and tag pairs check passed!"
+            }
+            const response = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            })
+            const reg = new RegExp("\\*+" + BOT_NAME + "\\*+")
+            tagBotComment= response.data.find(comment => comment.body.match(reg))
+            if (tagBotComment) {
+              await github.rest.issues.updateComment({
+                  comment_id: tagBotComment.id,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: COMMENT_HEAD + COMMENT_BODY
+              })
+            } else {
+              await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: COMMENT_HEAD + COMMENT_BODY
+              })
+            }
+
+            if ( illegal_tags !== undefined ) {
+              core.setFailed("some tags are not exsist!")
+            }
+
+            if ( illegal_repos !== undefined) {
+              core.setOutput('DEPLOY', 'MANUALLY')
+            } else {
+              core.setOutput('DEPLOY', 'AUTO')
+            }
+
+        - name: update records
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ steps.get-token.outputs.app_token }}
+          script: |
+            const yaml = require('js-yaml');
+            const newIntergrated = ${{ steps.sync-info.outputs.illegal_repos }}
+            const {data} = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: "records.yml",
+            });
+
+            datas = Buffer.from(data.content, data.encoding)
+            recordsContent = yaml.load(datas.toString())
+
+            if ( recordsContent.records === null || recordsContent.records === undefined ) {
+                recordsContent.records = {}
+            }
+
+            newIntergrated.forEach(repo => {
+                recordsContent.records[repo.repo] = {"ver": repo.tag, "date": new Date().toISOString().split('T')[0], "pr": ${{ github.event.number }}}
+            })
+
+            const contentString = yaml.dump(recordsContent, {'sortKeys': true ,indent: 4})
+
+            let contentBinary = Buffer.from(contentString).toString("base64")
+            await github.rest.repos.createOrUpdateFileContents({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                sha: data.sha,
+                path: "records.yml",
+                message: "update records from https://github.com/${{ github.repository }}/pull/${{ github.event.number }}",
+                content: contentBinary,
+                branch: "master",
+            })
+
+      - name: label intergerted
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const { data } = await github.rest.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const labeled = (data.find(label => label.name === "Merged") !== undefined)
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['Merged']
+            })
+
+      - name: close this pull request
+        shell: python
+        env:
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.app_token }}
+        run: |
+          import requests
+          import os
+
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization":"Bearer " + os.environ.get("GITHUB_TOKEN")
+          }
+          res = requests.patch(url="https://api.github.com/repos/${{ github.repository }}/pulls/${{ github.event.number }}",
+            headers=headers, json= {'state': 'closed'})
