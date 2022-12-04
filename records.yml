@@ -1,4 +1,12 @@
 records:
+    ' htop':
+        date: '2022-12-04'
+        pr: 144
+        ver: ' 3.0.5.1-7deepin1'
+    ' qtsvg-opensource-src':
+        date: '2022-12-04'
+        pr: 144
+        ver: ' 5.15.3-1+dde'
     undefined:
         date: '2022-12-04'
         pr: 143
