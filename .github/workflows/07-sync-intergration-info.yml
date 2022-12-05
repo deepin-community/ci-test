@@ -143,6 +143,7 @@ jobs:
 
       - name: label intergerted
         uses: actions/github-script@v6
+        if: ${{ steps.get_info.outputs.login_id  == 'Zeno'}}
         with:
           github-token: ${{ github.token }}
           script: |
@@ -162,6 +163,7 @@ jobs:
             })
 
       - name: close this pull request
+        if: ${{ steps.get_info.outputs.login_id  == 'Zeno'}}
         shell: python
         env:
           GITHUB_TOKEN: ${{ steps.get-token.outputs.app_token }}
