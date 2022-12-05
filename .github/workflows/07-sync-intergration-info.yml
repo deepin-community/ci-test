@@ -7,7 +7,6 @@ on:
 
 jobs:
   sync-info:
-    if: github.event.pull_request.opened
     name: record
     runs-on: ubuntu-latest
     steps:
