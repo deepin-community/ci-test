@@ -105,7 +105,7 @@ jobs:
 
       - name: update records
         uses: actions/github-script@v6
-        if: ${{ steps.get_info.outputs.login_id  == 'Zeno'}}
+        if: ${{ steps.get_info.outputs.login_id  == 'Zeno-sole'}}
         with:
           github-token: ${{ steps.get-token.outputs.app_token }}
           script: |
@@ -143,7 +143,7 @@ jobs:
 
       - name: label intergerted
         uses: actions/github-script@v6
-        if: ${{ steps.get_info.outputs.login_id  == 'Zeno'}}
+        if: ${{ steps.get_info.outputs.login_id  == 'Zeno-sole'}}
         with:
           github-token: ${{ github.token }}
           script: |
@@ -163,7 +163,7 @@ jobs:
             })
 
       - name: close this pull request
-        if: ${{ steps.get_info.outputs.login_id  == 'Zeno'}}
+        if: ${{ steps.get_info.outputs.login_id  == 'Zeno-sole'}}
         shell: python
         env:
           GITHUB_TOKEN: ${{ steps.get-token.outputs.app_token }}
