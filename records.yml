@@ -1,4 +1,8 @@
 records:
+    htop:
+        date: '2022-12-05'
+        pr: 151
+        ver: 3.0.5.1-7deepin1
     xfonts-base:
         date: '2022-11-15'
         pr: 107
