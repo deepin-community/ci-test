@@ -1,12 +1,4 @@
 records:
-    htop:
-        date: '2022-12-04'
-        pr: 146
-        ver: 3.0.5.1-7deepin1
-    qtsvg-opensource-src:
-        date: '2022-12-04'
-        pr: 146
-        ver: 5.15.3-1+dde
     xfonts-base:
         date: '2022-11-15'
         pr: 107
