@@ -79,7 +79,7 @@ jobs:
             }
 
             if ("${{ steps.test-tag-exists.outputs.EXISTS }}" === "yes" && "${{ steps.get-version.outputs.DISTRIBUTION }}" !== "UNRELEASED"){
-              core.setFailed("Tag: ${{ steps.get-version.outputs.TAG }} exists!")
+              core.setFailed("Tag: ${{ steps.get-tag.outputs.TAG }} exists!")
             }
 
       - name: install depends for load scripts
