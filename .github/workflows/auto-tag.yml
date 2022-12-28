@@ -30,7 +30,7 @@ jobs:
         shell: python
         run: |
           import os
-          tag = ${{ steps.get-version.outputs.TAG }}
+          tag = "${{ steps.get-version.outputs.TAG }}"
           if tag.__contains__(":"):
               tag = tag.split(":")[1]
           if version.__contains__("-"):
