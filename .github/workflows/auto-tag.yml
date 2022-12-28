@@ -33,7 +33,7 @@ jobs:
           tag = "${{ steps.get-version.outputs.TAG }}"
           if tag.__contains__(":"):
               tag = tag.split(":")[1]
-          if version.__contains__("-"):
+          if tag.__contains__("-"):
               tag = tag.split("-")[0]
           output_file = os.environ.get("GITHUB_OUTPUT")
           with open(output_file, "a") as output:
