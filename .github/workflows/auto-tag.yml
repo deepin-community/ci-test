@@ -5,8 +5,6 @@ on:
     secrets:
       APP_PRIVATE_KEY:
         required: true
-      TRANSIFEX_API_TOKEN:
-        required: true
 
 env:
   APP_ID: 229710
