@@ -1,0 +1,11 @@
+name: build deb
+on:
+ workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    # disable uos
+    if: ${{ github.repository == 'linuxdeepin/deepin-deb-installer' }}
+    steps: |
+      echo ${{ github.repository }}
