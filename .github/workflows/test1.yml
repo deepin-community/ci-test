@@ -7,5 +7,5 @@ jobs:
     runs-on: ubuntu-latest
     # disable uos
     if: ${{ github.repository == 'linuxdeepin/deepin-deb-installer' }}
-    steps: |
+    run: |
       echo ${{ github.repository }}
