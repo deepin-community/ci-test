@@ -6,6 +6,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     # disable uos
-    if: ${{ github.repository == 'linuxdeepin/deepin-deb-installer' }}
-    run: |
-      echo ${{ github.repository }}
+    if: ${{ github.repository == 'deepin-community/ci-test' }}
+    steps:
+      - name: checkout_pull_request
+        run: |
+         echo ${{ github.repository }}
