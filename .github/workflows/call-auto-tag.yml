@@ -12,5 +12,5 @@ concurrency:
 
 jobs:
   auto_tag:
-    uses: deepin-community/ci-test/.github/workflows/auto-tag.yml@master
+    uses: deepin-community/.github/.github/workflows/auto-tag.yml@master
     secrets: inherit
